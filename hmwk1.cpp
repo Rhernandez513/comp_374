@@ -1,7 +1,7 @@
                     /* GNU GENERAL PUBLIC LICENSE */
                     /*    Version 3, 29 June 2007 */
 
- /* Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/> */
+ /* Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/> */
  /* Everyone is permitted to copy and distribute verbatim copies */
  /* of this license document, but changing it is not allowed. */
 
@@ -631,8 +631,8 @@
 /* state the exclusion of warranty; and each file should have at least */
 /* the "copyright" line and a pointer to where the full notice is found. */
 
-    /* <one line to give the program's name and a brief idea of what it does.> */
-    /* Copyright (C) <year>  <name of author> */
+    /* {one line to give the program's name and a brief idea of what it does.} */
+    /* Copyright (C) {year}  {name of author} */
 
     /* This program is free software: you can redistribute it and/or modify */
     /* it under the terms of the GNU General Public License as published by */
@@ -645,14 +645,14 @@
     /* GNU General Public License for more details. */
 
     /* You should have received a copy of the GNU General Public License */
-    /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
+    /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 /* Also add information on how to contact you by electronic and paper mail. */
 
   /* If the program does terminal interaction, make it output a short */
 /* notice like this when it starts in an interactive mode: */
 
-    /* <program>  Copyright (C) <year>  <name of author> */
+    /* {project}  Copyright (C) {year}  {fullname} */
     /* This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'. */
     /* This is free software, and you are welcome to redistribute it */
     /* under certain conditions; type `show c' for details. */
@@ -664,122 +664,56 @@
   /* You should also get your employer (if you work as a programmer) or school, */
 /* if any, to sign a "copyright disclaimer" for the program, if necessary. */
 /* For more information on this, and how to apply and follow the GNU GPL, see */
-/* <https://www.gnu.org/licenses/>. */
+/* <http://www.gnu.org/licenses/>. */
 
   /* The GNU General Public License does not permit incorporating your program */
 /* into proprietary programs.  If your program is a subroutine library, you */
 /* may consider it more useful to permit linking proprietary applications with */
 /* the library.  If this is what you want to do, use the GNU Lesser General */
 /* Public License instead of this License.  But first, please read */
-/* <https://www.gnu.org/licenses/why-not-lgpl.html>. */
+/* <http://www.gnu.org/philosophy/why-not-lgpl.html>. */
 
 
-
-#include <stdio.h>
-#include <string>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <iostream>
-#include <sys/types.h>
-#include <assert.h>
-#include <vector>
-#include <time.h>
-#include <sys/syscall.h>
-#include <sys/time.h>
 #include <iostream>
 
-using namespace std;
+int main(int argc, char * argv []) {
 
-double timespec_to_ms(struct timespec *ts){
-	return ts -> tv_sec*1000.0 + ts->tv_nsec/1000000.0;
+  if (argc >= 2) {
+
+    int buffer_size = 0;
+    std::string file_name;
+
+    std::string value (argv[1]);
+    std::string constant ("--buffer_size");
+
+    if (constant.compare(value) == 0) {
+      buffer_size = std::stoi(argv[2]);
+    } else {
+      std::cout << value << " is not " << constant << std::endl;
+    }
+
+    std::cout << "buffer_size: " << buffer_size << std::endl;
+
+    value = argv[3];
+    constant = "--file_name";
+
+    if (constant.compare(value) == 0) {
+      file_name = std::string(argv[4]);
+      std::cout << "file_name: "  << file_name << std::endl;
+    }
+
+    value =  argv[5];
+    constant = "--write_count=";
+    std::string prefix (constant);
+    std::string arguement (value);
+
+    int write_count;
+
+    if(arguement.substr(0, prefix.size()) == prefix) {
+      std::string argumentValue = arguement.substr(prefix.size());
+      write_count = std::stoi(argumentValue);
+    }
+    std::cout << "write_count : " << write_count << std::endl;
+  }
+  return 0;
 }
-int sysWrites(int bufferSize, long numberOfWrites, const char *FILE) {
-	char buffer[bufferSize];
-	int fileHandle = syscall(SYS_open, FILE , O_CREAT|O_TRUNC|O_RDONLY);
-	for(int i = 0; i < numberOfWrites; i++) {
-		syscall(SYS_write, fileHandle, &buffer[0], bufferSize);
-	}
-	 syscall(SYS_close, fileHandle);
-	 return 0;
-}
-int sysReads(int bufferSize, long numberOfReads){
-	char buffer[bufferSize];
-	int fileHandle = syscall(SYS_open, "file.txt", O_CREAT|O_TRUNC|O_RDONLY);
-	for(auto i = 0; i<numberOfReads; i++){
-		syscall(SYS_read, fileHandle, &buffer[0], bufferSize);
-	}
-	syscall(SYS_close, fileHandle);
-	return 0;
-}
-
-int main(int argc, char* argv[]){
-/*
-	if(argc<7){
-		cerr<<"not enough arguments: " << argv[0] << endl;
-		return 1;
-	}*/
-	struct timespec start_time, end_time;
-	int index = 0;
-	for(index = 0; index<argc; index++){
-		if(strncmp(argv[index], "--write_count", 13)==0){
-			printf("main(): Write_count was called\n");
-			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time);
-				sysWrites(1000000, 10000000, "file.txt");
-				clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_time);
-				printf("Program took %f seconds to finish \n",timespec_to_ms(&end_time)-timespec_to_ms(&start_time));
-
-		} else if(strncmp(argv[index],"--read_count", 12)==0){
-			printf("main(): Read_count was called\n");
-			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time);
-			sysReads(100000,1000000);
-			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_time);
-			printf("Program took %f seconds to finish \n",timespec_to_ms(&end_time)-timespec_to_ms(&start_time));
-			}
-		}
-
-}
-
-/* #include <iostream> */
-
-/* int main(int argc, char * argv []) { */
-
-/*   if (argc >= 2) { */
-
-/*     int buffer_size = 0; */
-/*     std::string file_name; */
-
-/*     std::string value (argv[1]); */
-/*     std::string constant ("--buffer_size"); */
-
-/*     if (constant.compare(value) == 0) { */
-/*       buffer_size = std::stoi(argv[2]); */
-/*     } else { */
-/*       std::cout << value << " is not " << constant << std::endl; */
-/*     } */
-
-/*     std::cout << "buffer_size: " << buffer_size << std::endl; */
-
-/*     value = argv[3]; */
-/*     constant = "--file_name"; */
-
-/*     if (constant.compare(value) == 0) { */
-/*       file_name = std::string(argv[4]); */
-/*       std::cout << "file_name: "  << file_name << std::endl; */
-/*     } */
-
-/*     value =  argv[5]; */
-/*     constant = "--write_count="; */
-/*     std::string prefix (constant); */
-/*     std::string arguement (value); */
-
-/*     int write_count; */
-
-/*     if(arguement.substr(0, prefix.size()) == prefix) { */
-/*       std::string argumentValue = arguement.substr(prefix.size()); */
-/*       write_count = std::stoi(argumentValue); */
-/*     } */
-/*     std::cout << "write_count : " << write_count << std::endl; */
-/*   } */
-/*   return 0; */
-/* } */
